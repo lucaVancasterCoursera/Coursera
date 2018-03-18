@@ -8,7 +8,7 @@ init <- function() {
   library(data.table)
   library(dplyr)
   # please update to your working directory (for win, use \\ as directory separator)
-  setwd('~/repos/Coursera/course3/assignment')
+  setwd('.')
 }
 
 # This function sets the temp directory and downloads the assignment data file
@@ -16,7 +16,7 @@ setDataFiles <- function() {
   if (file.exists('./data')) unlink('data', recursive=TRUE)
   dir.create('./data', showWarnings = FALSE)
   download.file('https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip',
-                destfile='data/dataset.zip', method = 'curl')
+                destfile='dataset.zip', method = 'curl')
   zipF <- list.files(path = "./", pattern = "dataset.zip", full.names = TRUE)
   a<-ldply(.data = zipF, .fun = unzip, exdir = './data')
 }
@@ -72,5 +72,5 @@ execute <- function() {
   return (res)
 }
 
-print (execute())
+write.table (execute(),row.name=FALSE,file = 'result.txt')
 
