@@ -1,11 +1,13 @@
 
 # function to set environment libraries & download if not present
 init <- function() {
+  if (!require('plyr')) install.packages('dplyr')
   if (!require('dplyr')) install.packages('dplyr')
   if (!require('reshape')) install.packages('reshape')
   if (!require('data.table')) install.packages('data.table')
   library(reshape)
   library(data.table)
+  library(plyr)
   library(dplyr)
   # please update to your working directory (for win, use \\ as directory separator)
   setwd('.')
