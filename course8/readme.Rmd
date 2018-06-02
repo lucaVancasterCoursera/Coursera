@@ -1,0 +1,140 @@
+---
+title: "Course 8 - Prediction Assignment Writeup"
+author: "Luca Vancaster"
+date: "6/2/2018"
+output: html_document
+---
+
+```{r echo=TRUE}
+# Intializing
+knitr::opts_chunk$set(echo = TRUE)
+rm(list=ls())
+
+suppressMessages(library(e1071, quietly = TRUE))
+suppressMessages(library(caret, quietly = TRUE))
+suppressMessages(library(rpart, quietly = TRUE))
+suppressMessages(library(randomForest, quietly = TRUE))
+
+data_url_training = 'https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv'
+data_url_testing = 'https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv'
+
+set.seed(54321)
+
+```
+  
+# Background
+Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement – a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, your goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. 
+More information is available from the website here: http://web.archive.org/web/20161224072740/http:/groupware.les.inf.puc-rio.br/har (see the section on the Weight Lifting Exercise Dataset).
+
+# Data collection merrits
+The data for this project come from this source: http://web.archive.org/web/20161224072740/http:/groupware.les.inf.puc-rio.br/har. 
+
+# Executive summary
+The goal of your project is to predict the manner in which they did the exercise. This is the "classe" variable in the training set. Any of the other variables may be used to predict with. A report should be created describing how the model has been built, how cross validation has been used, thoughts about sample error, and why made choices were made. 
+The selected prediction model should then be used to predict 20 different test cases.
+
+
+# Data manipulation
+  
+```{r echo=TRUE}
+#locate downloaded dataset
+testing<-read.csv(data_url_testing,
+                  header =TRUE,
+                  sep = ",")
+training<-read.csv(data_url_training,
+                   header = TRUE,
+                   sep = ",")
+
+## Data processing
+### Isolating 30% of training set to create a local test set
+inTrain  <- createDataPartition(training$classe, 
+                                p=0.70, 
+                                list=FALSE)
+localTraining <- training[inTrain, ]
+localTesting  <- training[-inTrain, ]
+
+# remove NVAs columns
+nzvars <- nearZeroVar(localTraining)
+localTraining <- localTraining[, -nzvars]
+localTesting  <- localTesting[, -nzvars]
+
+# remove NAs columns:
+pivot1 <- 0.95
+NAs <- sapply(localTraining, function(x) mean(is.na(x))) > pivot1
+localTraining <- localTraining[, NAs==FALSE]
+localTesting <- localTesting[, NAs==FALSE]
+
+# removing columns 1 to 5: ID column (would infer in model caculation)
+IDs <- names(localTraining) %in% c('X',
+         'user_name',
+         'raw_timestamp_part_1',
+         'raw_timestamp_part_2',
+         'cvtd_timestamp')
+localTraining <- localTraining[ !IDs ]
+localTesting  <- localTesting[ !IDs ]
+
+names(localTraining)
+dim(localTraining)
+```
+  
+  <hr>
+  
+# Model 1: Random forest
+```{r echo=TRUE}
+# first choice because it seems a good fit for this problem type
+
+# Model
+controlRF <- trainControl(method="cv", 
+                          number=3, 
+                          verboseIter=FALSE)
+fitRF <- train(classe ~ ., 
+               data=localTraining, 
+               method="rf",
+               trControl=controlRF)
+
+# Prediction
+predictRF <- predict(fitRF, 
+                     newdata=localTesting)
+
+# Confusion matrix
+cmRF <- confusionMatrix(predictRF, localTesting$classe)
+cmRF
+
+```
+
+### Accuracy reported for Random forest model: **`r round(cmRF$overall['Accuracy'], 6)`**
+  
+  
+  <hr>
+  
+# Model 2: Decision tree
+```{r echo=TRUE}
+## model
+fitDT <- rpart(classe ~ ., 
+               data=localTraining, 
+               method="class")
+
+# Prediction
+predictDT <- predict(fitDT, 
+                     newdata=localTesting, 
+                     type="class")
+
+# Confusion matrix
+cmDT <- confusionMatrix(predictDT, localTesting$classe)
+cmDT
+
+```  
+
+## Accuracy reported for Decision tree model: **`r round(cmDT$overall['Accuracy'], 6)`**
+  
+  
+  <hr>
+  
+### Model selected (by accuracy value): **Random forest**
+  
+  
+## Apply prediction on test set
+```{r echo=TRUE}
+predictTEST <- predict(fitRF, newdata=testing)
+predictTEST
+```  
