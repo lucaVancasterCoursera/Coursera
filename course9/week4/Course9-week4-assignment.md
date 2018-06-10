@@ -1,0 +1,140 @@
+Course9-week4-assignment
+========================================================
+author: 
+date: 
+autosize: true
+
+Course 9 - Week 4 - Assignment
+========================================================
+<hr>  
+  
+  
+**Assignment**: Reproducible Pitch Presentation
+
+- 5 slides to pitch our idea done in Slidify or Rstudio Presenter
+- Your presentation pushed to github or Rpubs
+- A link to your github or Rpubs presentation pasted into the provided text box
+
+About magic square
+========================================================
+<hr>
+  
+**Definition**:
+The smallest (and unique up to rotation and reflection) non-trivial case of a magic square, measuring 3×3
+In recreational mathematics, a magic square[1] is a {\displaystyle n\times n} n\times n square grid (where n is the number of cells on each side) filled with distinct positive integers in the range {\displaystyle 1,2,...,n^{2}} {\displaystyle 1,2,...,n^{2}} such that each cell contains a different integer and the sum of the integers in each row, column and diagonal is equal [Wiki: https://en.wikipedia.org/wiki/Magic_square]
+  
+Example square of dimension 3:
+
+```r
+library(magic)
+library(kableExtra)
+kable(magic(3))
+```
+
+<table>
+<tbody>
+  <tr>
+   <td style="text-align:right;"> 2 </td>
+   <td style="text-align:right;"> 7 </td>
+   <td style="text-align:right;"> 6 </td>
+  </tr>
+  <tr>
+   <td style="text-align:right;"> 9 </td>
+   <td style="text-align:right;"> 5 </td>
+   <td style="text-align:right;"> 1 </td>
+  </tr>
+  <tr>
+   <td style="text-align:right;"> 4 </td>
+   <td style="text-align:right;"> 3 </td>
+   <td style="text-align:right;"> 8 </td>
+  </tr>
+</tbody>
+</table>
+
+About the little shiny app
+========================================================
+<hr>
+  
+This little app prompts the user for the dimension of the square.   
+At entering the new value, the server part of the app will recalculate the square accordingly and update the user interface.  
+Note that square of dimension 1 are irrelevant and the ones of dimension 2 are impossible.
+  
+You will find the app: <a href='https://lvancaster.shinyapps.io/Course9-week4/'>here</a>.  
+  
+<table>
+<tbody>
+  <tr>
+   <td style="text-align:right;"> 1 </td>
+   <td style="text-align:right;"> 12 </td>
+   <td style="text-align:right;"> 8 </td>
+   <td style="text-align:right;"> 13 </td>
+  </tr>
+  <tr>
+   <td style="text-align:right;"> 15 </td>
+   <td style="text-align:right;"> 6 </td>
+   <td style="text-align:right;"> 10 </td>
+   <td style="text-align:right;"> 3 </td>
+  </tr>
+  <tr>
+   <td style="text-align:right;"> 14 </td>
+   <td style="text-align:right;"> 7 </td>
+   <td style="text-align:right;"> 11 </td>
+   <td style="text-align:right;"> 2 </td>
+  </tr>
+  <tr>
+   <td style="text-align:right;"> 4 </td>
+   <td style="text-align:right;"> 9 </td>
+   <td style="text-align:right;"> 5 </td>
+   <td style="text-align:right;"> 16 </td>
+  </tr>
+</tbody>
+</table>
+
+
+About the UI code
+========================================================
+<hr>
+  
+<br>
+
+```r
+shinyUI(fluidPage(
+
+  titlePanel("Classical magic square"),
+
+  sidebarLayout(
+      sidebarPanel(textInput("dims", "Enter square dimension (3-20):",value = 3)
+    ),
+
+    mainPanel(
+        h5('This little widget caluclates a magic square for a given dimension.'),
+        uiOutput("matrix")
+       
+    )
+  )
+))
+```
+
+About the SERVER code
+========================================================
+<hr>
+  
+<br>
+
+```r
+shinyServer(function(input, output) {
+    output$matrix <- renderTable({
+        if(input$dims != '') {
+            if ( as.numeric(input$dims)<3 | as.numeric(input$dims)>20 ) {
+                matrix <- magic(1)
+                rownames(matrix) <- c() 
+            } else {
+                matrix <- magic(as.numeric(input$dims))
+                rownames(matrix) <- c()
+            }
+            matrix
+        }
+    })
+})
+```
+
